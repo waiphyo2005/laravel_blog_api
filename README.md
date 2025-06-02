@@ -1,4 +1,4 @@
-# Larave Blog API with JWT Authentication
+# Laravel Blog API with JWT Authentication
 
 This project provides a RESTful API for user authentication and blog management, secured using JWT tokens. It supports CRUD operations on blogs, user profile management, and media handling with Markdown-based blog bodies.
 
