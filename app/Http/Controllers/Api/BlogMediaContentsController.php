@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\BlogMediaContents;
-use App\Http\Requests\StoreBlogMediaContentsRequest;
-use App\Http\Requests\UpdateBlogMediaContentsRequest;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
