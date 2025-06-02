@@ -3,11 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Blogs;
-use App\Http\Requests\UpdateBlogsRequest;
 use App\Http\Controllers\Controller;
 use App\Models\BlogMediaContents;
-use App\Models\User;
-use Database\Seeders\BlogMediaContentsSeeder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Resources\BlogResource;
@@ -29,7 +26,7 @@ class BlogsController extends Controller
     public function store(Request $request)
     {
         //Validate user input
-        $request->validate([
+        $validatedData = $request->validate([
             'title' => 'required',
             'body' => 'required',
         ]);
@@ -38,7 +35,7 @@ class BlogsController extends Controller
         $user = Auth::user();
 
         //Use regex to find the image URLs in the blog's body markdown
-        preg_match_all('/!\[.*?\]\((.*?)\)/', $request->body, $matches);
+        preg_match_all('/!\[.*?\]\((.*?)\)/', $validatedData['body'], $matches);
         $imageURLs = $matches[1];
 
         // Using a try-catch block with a database transaction to ensure both actions are completed together or rolled back on failure
@@ -47,8 +44,8 @@ class BlogsController extends Controller
 
             //Store the blog
             $blog = Blogs::create([
-                'title' => $request->title,
-                'body' => $request->body,
+                'title' => $validatedData['title'],
+                'body' => $validatedData['body'],
                 'user_id' => $user->id
             ]);
 
@@ -90,7 +87,7 @@ class BlogsController extends Controller
     public function update(Request $request, Blogs $blog)
     {
         //Validate user input
-        $request->validate([
+        $validatedData = $request->validate([
             'title' => 'required',
             'body' => 'required',
         ]);
@@ -99,7 +96,7 @@ class BlogsController extends Controller
         $user = Auth::user();
 
         //Use regex to find the image URLs in the blog's body markdown
-        preg_match_all('/!\[.*?\]\((.*?)\)/', $request->body, $matches);
+        preg_match_all('/!\[.*?\]\((.*?)\)/', $validatedData['body'], $matches);
         $updatedImageURLs = $matches[1];
 
         //Get old blog images to compare with the images in the new blog's markdown
@@ -110,8 +107,8 @@ class BlogsController extends Controller
 
             // Update the blog's title and body
             $blog->update([
-                'title' => $request->title,
-                'body'  => $request->body
+                'title' => $validatedData['title'],
+                'body'  => $validatedData['body']
             ]);
 
             // Mark new images (found in updated markdown but not previously linked) as used and link them to the blog

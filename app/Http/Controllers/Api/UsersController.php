@@ -5,15 +5,16 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Http\Resources\UserProfileResource;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 
-class ApiController extends Controller
+class UsersController extends Controller
 {
     public function register(Request $request)
     {
-        $data = $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|confirmed',
@@ -21,7 +22,7 @@ class ApiController extends Controller
             'phone_number' => 'required'
         ]);
 
-        $user = User::create($data);
+        $user = User::create($validatedData);
 
         return response()->json([
             'message' => 'User created successfully.',
@@ -31,11 +32,11 @@ class ApiController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $validatedData = $request->validate([
             'email' => 'required|email',
             'password' => 'required'
         ]);
-        $token = Auth::attempt($credentials);
+        $token = Auth::attempt($validatedData);
         if (!$token) {
             return response()->json([
                 'message' => 'Incorrect login credentials.'
@@ -51,10 +52,30 @@ class ApiController extends Controller
     public function profile()
     {
         $user = Auth::user();
-        return response()->json($user, 200);
+        return new UserProfileResource($user);
     }
 
-    public function refreshToken() {}
+    public function editProfile(Request $request)
+    {
+        $user = Auth::user();
+        $validatedData = $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email' . $user->id,
+            'address' => 'required',
+            'phone_number' => 'required'
+        ]);
+
+        $user->update([
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'address' => $validatedData['address'],
+            'phone_number' => $validatedData['phone_number']
+        ]);
+
+        return response()->json([
+            'message' => 'User profile updated successfully.'
+        ], 200);
+    }
 
     public function logout()
     {
@@ -66,21 +87,21 @@ class ApiController extends Controller
 
     public function changePassword(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'old_password' => 'required',
             'new_password' => 'required'
         ]);
 
         $user = Auth::user();
 
-        $passwordCheck = Hash::check($request->old_password, $user->password);
+        $passwordCheck = Hash::check($validatedData['old_password'], $user->password);
         if (!$passwordCheck) {
             return response()->json([
                 'message' => 'Incorrect Password!'
             ], 401);
         }
 
-        $user->password = Hash::make($request->new_password);
+        $user->password = Hash::make($validatedData['new_password']);
         $user->save();
         return response()->json([
             'message' => 'Password changed successfully.'

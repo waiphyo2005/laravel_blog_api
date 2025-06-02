@@ -18,15 +18,15 @@ class BlogMediaContentsController extends Controller
     //Store new image
     public function store(Request $request)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg',
         ]);
 
         $user = Auth::user();
 
-        $imageOriginalName = $request->image->getClientOriginalName();
+        $imageOriginalName = $validatedData['image']->getClientOriginalName();
         $imageUniqueName = uniqid() . '-' . str_replace(' ', '-', $imageOriginalName);
-        $request->image->move(public_path('images/blog-images'), $imageUniqueName);
+        $validatedData['image']->move(public_path('images/blog-images'), $imageUniqueName);
         $imagePathURL = asset('images/blog-images/' . $imageUniqueName);
 
         $newBlogImage = BlogMediaContents::create([
